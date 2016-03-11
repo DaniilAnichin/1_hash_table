@@ -6,15 +6,12 @@ using namespace std;
 
 int main()
 {
-    string item = "item another staff";
-    string item2 = "stap civility";
-    string item3 = "stap frdgvt";
-
     hash_table tab(5);
 
     string key = "abc";
     string value = "defghigk";
     tab.add_pair(key, value);
+
     key = "abc";
     value = "defghigklmn";
     tab.add_pair(key, value);
@@ -23,8 +20,9 @@ int main()
     value = "defghigk";
     tab.add_pair(key, value);
 
-    cout<<tab.get_keys();
-
+    for(const string key: tab.get_keys())
+        cout<<key;
+//        keys_vector.push_back(key_pair.first);
 
     return 0;
 }
