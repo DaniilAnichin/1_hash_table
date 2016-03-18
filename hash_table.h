@@ -45,7 +45,7 @@ public:
     hash_table(int max_size = 1024);
     ~hash_table();
 
-    int add_pair(const string& key, const string& value);
+    string add_pair(const string& key, const string& value);
     string edit_pair(const string& key, const string& value);
     string delete_pair(const string& key);
     string get_value(const string& key);
@@ -58,6 +58,7 @@ private:
     int m_hash_len;
     int m_pairs_num;
 
+    chain_link* empty;
     chain_link** chains;
 
     int hash(const string& key);

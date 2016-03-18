@@ -51,17 +51,16 @@ int start_run()
     int hash_size = 0;
     cout<<"Input the size of the hash table to work with:"<<endl;
     cin>>hash_size;
-
+    cin.clear();
+    cin.ignore();
     hash_table table(hash_size);
 
     do
     {
         incorrect_choice = 1;
 
-        cin.ignore();
-
         system("clear");
-
+//        cout<<"\033[1;1H";
         string nums("12345678");
         for(unsigned int i = 0; i < nums.length(); ++i)
             cout<<"("<<i+1<<"): "<<start_menu.at(i)<<endl;
@@ -84,13 +83,17 @@ int start_run()
         {
             cout<<"Input the key:"<<endl;
             string key_to_add;
-            cin>>key_to_add;
+            getline(cin, key_to_add);
+            cin.sync();
 
             cout<<"Input the value:"<<endl;
             string value_to_add;
-            cin>>value_to_add;
+            getline(cin, value_to_add);
+            cin.sync();
 
-            table.add_pair(key_to_add, value_to_add);
+            cout<<table.add_pair(key_to_add, value_to_add)<<endl;
+
+            kb_wait();
         }
             break;
         case '2':
@@ -98,19 +101,18 @@ int start_run()
             cout<<"Hash keys are:"<<endl;
             for(const string key: table.get_keys())
                 cout<<key<<endl;
-            getch();
-            cout<<"Press any key to continue";
+            kb_wait();
         }
             break;
         case '3':
         {
             cout<<"Input the key:"<<endl;
             string key_to_get;
-            cin>>key_to_get;
+            getline(cin, key_to_get);
+            cin.sync();
 
             cout<<"The value is:"<<endl<<table.get_value(key_to_get)<<endl;
-            getch();
-            cout<<"Press any key to continue";
+            kb_wait();
         }
             break;
         case '4':
@@ -118,30 +120,36 @@ int start_run()
             cout<<"Hash table content is:"<<endl;
             for(const string value: table.get_values())
                 cout<<value<<endl;
-            getch();
-            cout<<"Press any key to continue";
+            kb_wait();
         }
             break;
         case '5':
         {
             cout<<"Input the key:"<<endl;
             string key_to_change;
-            cin>>key_to_change;
+            getline(cin, key_to_change);
+            cin.sync();
 
             cout<<"Input the new value:"<<endl;
             string value_to_change;
-            cin>>value_to_change;
+            getline(cin, value_to_change);
+            cin.sync();
 
-            table.edit_pair(key_to_change, value_to_change);
+            cout<<table.edit_pair(key_to_change, value_to_change)<<endl;
+
+            kb_wait();
         }
             break;
         case '6':
         {
             cout<<"Input the key:"<<endl;
             string key_to_delete;
-            cin>>key_to_delete;
+            getline(cin, key_to_delete);
+            cin.sync();
 
-            table.delete_pair(key_to_delete);
+            cout<<table.delete_pair(key_to_delete)<<endl;
+
+            kb_wait();
         }
             break;
         case '7':
@@ -155,4 +163,3 @@ int start_run()
 
     return exit;
 }
-

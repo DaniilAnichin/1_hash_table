@@ -56,20 +56,13 @@ int hash_table::hash(const string& key)
 }
 
 
-chain_link* hash_table::get_chain(const int& hash)
-{
-    chain_link* chain = chains[hash];
-    return chain;
-}
-
-
 hash_table::hash_table(int max_size /*= 1024*/):
     m_max_size(max_size),
     m_real_size(max((int)pow(10, log10(max_size)), 1000)),
     m_hash_len((int)log10((double)this->m_real_size)),
-    m_pairs_num(0)
+    m_pairs_num(0),
+    empty(link_create())
 {
-    chain_link* empty = link_create();
     chains = new chain_link*[m_real_size];
     for(int i=0; i < m_real_size; ++i)
         chains[i] = empty;
@@ -78,54 +71,77 @@ hash_table::hash_table(int max_size /*= 1024*/):
 
 hash_table::~hash_table()
 {
+    for(int i=0; i < m_real_size; ++i)
+    {
+        chain_link* key_chain = chains[i];
+        while(key_chain->current != nullptr)
+        {
+            if(key_chain->next != nullptr)
+            {
+                chain_link* next_link = key_chain->next;
+                link_destroy(key_chain);
+                key_chain = next_link;
+            }
+            else if(key_chain != empty)
+                link_destroy(key_chain);
+        }
+    }
+
+    link_destroy(empty);
+
     delete[] chains;
 }
 
 
-int hash_table::add_pair(const string& key, const string& value)
+string hash_table::add_pair(const string& key, const string& value)
 {
     if(m_pairs_num >= m_max_size)
     {
-        cout<<"Hash table is already full"<<endl;
-        return 1;
+        return "Hash table is already full;";
     }
 
-    int key_hash = hash(key);
-
-    chain_link* key_chain = get_chain(key_hash);
+    chain_link* key_chain = chains[hash(key)];
 
     if(key_chain->current == nullptr)
     {
         key_value* new_pair = pair_create(key, value);
-
         chain_link* new_link = link_create(new_pair);
-        chains[key_hash] = new_link;
+
+        chains[hash(key)] = new_link;
     }
     else
     {
-        while(key_chain->next != nullptr)
+        while(key_chain->current != nullptr)
         {
             if(key == key_chain->current->first)
             {
-                cin.ignore();
                 cout<<"This key already exists in the table, revrite data[y/n]?";
                 char choice = getche();
 
                 switch(choice){
                 case 'y':
                 case 'Y':
-                    key_chain->current->second = value; return 0;
+                {
+                    key_chain->current->second = value;
+                    return "Success;";
+                }
                     break;
                 case 'n':
                 case 'N':
-                    return 0;
+                    return "Success;";
                     break;
                 default:
-                    cout<<"I'll take it like a 'no'."<<endl; return 0;
+                {
+                    cout<<"I'll take it like a 'no'."<<endl;
+                    return "Success;";
+                }
                 }
             }
 
-            key_chain = key_chain->next;
+            if(key_chain->next != nullptr)
+                key_chain = key_chain->next;
+            else
+                break;
         }
 
         key_value* new_pair = pair_create(key, value);
@@ -135,27 +151,30 @@ int hash_table::add_pair(const string& key, const string& value)
     }
     ++m_pairs_num;
 
-    return 0;
+    return "Success;";
 }
 
 
 string hash_table::edit_pair(const string& key, const string& value)
 {
-    chain_link* key_chain = get_chain(hash(key));
+    chain_link* key_chain = chains[hash(key)];
 
     bool found = false;
 
-
-//    for(key_value& key_pair: *key_chain)
-    if(key_chain->current != nullptr)
-        while(key_chain->next != nullptr)
+    while(key_chain->current != nullptr)
+    {
+        if(key_chain->current->first == key)
         {
-            if(key_chain->current->first == key)
-                key_chain->current->second = value; found = true;
-            key_chain = key_chain->next;
+            key_chain->current->second = value;
+            found = true;
         }
+        if(key_chain->next != nullptr)
+            key_chain = key_chain->next;
+        else
+            break;
+    }
 
-    string result = (found == false ? "Key is not found;" : "");
+    string result = (found == false ? "Key is not found;" : "Success;");
 
     return result;
 }
@@ -163,22 +182,34 @@ string hash_table::edit_pair(const string& key, const string& value)
 
 string hash_table::delete_pair(const string& key)
 {
-    chain_link* key_chain = get_chain(hash(key));
+    chain_link* key_chain = chains[hash(key)];
 
     bool found = false;
 
-    if(key_chain->current != nullptr)
-        while(key_chain->next != nullptr)
+    if(key_chain != empty && key_chain->current->first == key)
+    {
+        chains[hash(key)] = (key_chain->next == nullptr ? empty : key_chain->next);
+        link_destroy(key_chain);
+        --m_pairs_num;
+        found = true;
+    }
+    else
+    while(key_chain->next != nullptr)
+    {
+        if(key_chain->next->current->first == key)
         {
-            if(key_chain->current->first == key)
-            {
-                link_destroy(key_chain->next);
-                key_chain->next = key_chain->next->next;found = true;
-            }
-            key_chain = key_chain->next;
+            chain_link* next_link = key_chain->next->next;
+            link_destroy(key_chain->next);
+            key_chain->next = next_link;
+            --m_pairs_num;
+            found = true;
+            break;
         }
 
-    string result = (found == false ? "Key is not found;" : "");
+        key_chain = key_chain->next;
+    }
+
+    string result = (found ? "Success;" : "Key is not found;");
 
     return result;
 }
@@ -186,18 +217,24 @@ string hash_table::delete_pair(const string& key)
 
 string hash_table::get_value(const string& key)
 {
-    chain_link* key_chain = get_chain(hash(key));
+    chain_link* key_chain = chains[hash(key)];
 
     string value = "";
     bool found = false;
 
-    if(key_chain->current != nullptr)
-        while(key_chain->next != nullptr)
+    while(key_chain->current != nullptr)
+    {
+        if(key_chain->current->first == key)
         {
-            if(key_chain->current->first == key)
-                value = key_chain->current->second;found = true;
-            key_chain = key_chain->next;
+            value = key_chain->current->second;
+            found = true;
         }
+
+        if(key_chain->next != nullptr)
+            key_chain = key_chain->next;
+        else
+            break;
+    }
 
     if(found == false)
         value = "Key is not found;";
@@ -213,12 +250,14 @@ vector<string> hash_table::get_keys()
     for(int i=0; i < m_real_size; ++i)
     {
         chain_link* key_chain = chains[i];
-        if(key_chain->current != nullptr)
-            do
-            {
-                keys_vector.push_back(chains[i]->current->first);
+        while(key_chain->current != nullptr)
+        {
+            keys_vector.push_back(key_chain->current->first);
+            if(key_chain->next != nullptr)
                 key_chain = key_chain->next;
-            } while(key_chain->next != nullptr);
+            else
+                break;
+        }
     }
 
     return keys_vector;
@@ -232,12 +271,14 @@ vector<string> hash_table::get_values()
     for(int i=0; i < m_real_size; ++i)
     {
         chain_link* key_chain = chains[i];
-        if(key_chain->current != nullptr)
-            while(key_chain->next != nullptr)
-            {
-                values_vector.push_back(chains[i]->current->second);
+        while(key_chain->current != nullptr)
+        {
+            values_vector.push_back(chains[i]->current->second);
+            if(key_chain->next != nullptr)
                 key_chain = key_chain->next;
-            }
+            else
+                break;
+        }
     }
 
     return values_vector;

@@ -16,4 +16,10 @@ char getch();
 
 char getche();
 
+inline void kb_wait()
+{
+    puts("Press any key to continue");
+    getch();
+}
+
 #endif // MY_CONIO_H
