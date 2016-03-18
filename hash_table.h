@@ -42,7 +42,7 @@ void link_destroy(chain_link* waste_chain_link);
 class hash_table
 {
 public:
-    hash_table(int max_size = 1024);
+    hash_table(int max_size = 512);
     ~hash_table();
 
     string add_pair(const string& key, const string& value);

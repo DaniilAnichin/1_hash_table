@@ -56,7 +56,7 @@ int hash_table::hash(const string& key)
 }
 
 
-hash_table::hash_table(int max_size /*= 1024*/):
+hash_table::hash_table(int max_size/* = 512*/):
     m_max_size(max_size),
     m_real_size(max((int)pow(10, log10(max_size)), 1000)),
     m_hash_len((int)log10((double)this->m_real_size)),
@@ -83,7 +83,10 @@ hash_table::~hash_table()
                 key_chain = next_link;
             }
             else if(key_chain != empty)
+            {
                 link_destroy(key_chain);
+                break;
+            }
         }
     }
 
@@ -95,6 +98,8 @@ hash_table::~hash_table()
 
 string hash_table::add_pair(const string& key, const string& value)
 {
+    bool conflict = false;
+
     if(m_pairs_num >= m_max_size)
     {
         return "Hash table is already full;";
@@ -108,6 +113,7 @@ string hash_table::add_pair(const string& key, const string& value)
         chain_link* new_link = link_create(new_pair);
 
         chains[hash(key)] = new_link;
+        ++m_pairs_num;
     }
     else
     {
@@ -121,35 +127,31 @@ string hash_table::add_pair(const string& key, const string& value)
                 switch(choice){
                 case 'y':
                 case 'Y':
-                {
                     key_chain->current->second = value;
-                    return "Success;";
-                }
                     break;
                 case 'n':
                 case 'N':
-                    return "Success;";
                     break;
                 default:
-                {
                     cout<<"I'll take it like a 'no'."<<endl;
-                    return "Success;";
                 }
-                }
+                conflict = true;
             }
-
             if(key_chain->next != nullptr)
                 key_chain = key_chain->next;
             else
                 break;
         }
 
-        key_value* new_pair = pair_create(key, value);
+        if(!conflict)
+        {
+            key_value* new_pair = pair_create(key, value);
+            chain_link* new_link = link_create(new_pair);
 
-        chain_link* new_link = link_create(new_pair);
-        key_chain->next = new_link;
+            key_chain->next = new_link;
+            ++m_pairs_num;
+        }
     }
-    ++m_pairs_num;
 
     return "Success;";
 }
