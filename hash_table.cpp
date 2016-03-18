@@ -43,35 +43,33 @@ void link_destroy(chain_link* waste_chain_link)
 }
 
 
-int hash_table::hash(const string& key)
+unsigned int hash_table::hash(const string& key)
 {
-    int hash = 0;
-    string temp;
+    unsigned int hash = 0;
 
-    temp = "whhltmsflha";
-
-    for(int i=0; i < hash_table::m_hash_len; ++i)
-        hash += ((temp[i] ^ key[i % key.size()]) % 10) * pow(10, i);
+    for(unsigned int i=0; i < hash_table::m_hash_len; ++i)
+        hash += ((key[i % key.size()] ^ (key[i % key.size()] >> 4))\
+                & (char)15)<<(4 * i);
     return hash;
 }
 
 
-hash_table::hash_table(int max_size/* = 512*/):
+hash_table::hash_table(unsigned int max_size/* = 256*/):
     m_max_size(max_size),
-    m_real_size(max((int)pow(10, log10(max_size)), 1000)),
-    m_hash_len((int)log10((double)this->m_real_size)),
+    m_hash_len(get_hash_len(max_size - 1)),
+    m_real_size(1 << (4 * m_hash_len)),
     m_pairs_num(0),
     empty(link_create())
 {
     chains = new chain_link*[m_real_size];
-    for(int i=0; i < m_real_size; ++i)
+    for(unsigned int i=0; i < m_real_size; ++i)
         chains[i] = empty;
 }
 
 
 hash_table::~hash_table()
 {
-    for(int i=0; i < m_real_size; ++i)
+    for(unsigned int i=0; i < m_real_size; ++i)
     {
         chain_link* key_chain = chains[i];
         while(key_chain->current != nullptr)
@@ -249,7 +247,7 @@ vector<string> hash_table::get_keys()
 {
     vector<string> keys_vector;
 
-    for(int i=0; i < m_real_size; ++i)
+    for(unsigned int i=0; i < m_real_size; ++i)
     {
         chain_link* key_chain = chains[i];
         while(key_chain->current != nullptr)
@@ -270,7 +268,7 @@ vector<string> hash_table::get_values()
 {
     vector<string> values_vector;
 
-    for(int i=0; i < m_real_size; ++i)
+    for(unsigned int i=0; i < m_real_size; ++i)
     {
         chain_link* key_chain = chains[i];
         while(key_chain->current != nullptr)

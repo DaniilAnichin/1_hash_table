@@ -39,10 +39,20 @@ chain_link* link_create(key_value* current = nullptr);
 
 void link_destroy(chain_link* waste_chain_link);
 
+inline int get_hash_len(unsigned int table_size)
+{
+    int len = 1;
+
+    while((table_size = table_size>>4) != 0)
+        ++len;
+
+    return len;
+}
+
 class hash_table
 {
 public:
-    hash_table(int max_size = 512);
+    hash_table(unsigned int max_size = 256);
     ~hash_table();
 
     string add_pair(const string& key, const string& value);
@@ -53,15 +63,15 @@ public:
     vector<string> get_values();
 
 private:
-    int m_max_size;
-    int m_real_size;
-    int m_hash_len;
-    int m_pairs_num;
+    unsigned int m_max_size;
+    unsigned int m_hash_len;
+    unsigned int m_real_size;
+    unsigned int m_pairs_num;
 
     chain_link* empty;
     chain_link** chains;
 
-    int hash(const string& key);
+    unsigned int hash(const string& key);
     chain_link* get_chain(const int& hash);
 };
 

@@ -24,6 +24,8 @@ inline void alert(string reason)
 int main(void)
 {
     int result;
+
+    cout<<(char)15;
     do
         result = start_run();
     while(result == -1);
