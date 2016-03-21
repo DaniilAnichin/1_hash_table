@@ -171,6 +171,7 @@ string hash_table::edit_pair(const string& key, const string& value)
         if(key_chain->next != nullptr)
             key_chain = key_chain->next;
         else
+
             break;
     }
 

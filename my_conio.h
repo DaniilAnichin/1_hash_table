@@ -22,4 +22,21 @@ inline void kb_wait()
     getch();
 }
 
+
+inline void clear_screen()
+{
+    /*
+    Clearing the screen of the terminal with dimensions as 80 * 61
+   */
+    int size_h = 80;
+    int size_v = 24;
+
+    printf("\033[1;1H");
+
+    for(int i = 0; i < size_h * size_v; ++i)
+        putchar(' ');
+
+    printf("\033[1;1H");
+}
+
 #endif // MY_CONIO_H
